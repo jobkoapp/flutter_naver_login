@@ -87,16 +87,20 @@ public class FlutterNaverLoginPlugin: NSObject, FlutterPlugin {
     }
 
     @objc private func appDidEnterBackground() {
-        if case .inProgress = loginState {
-            loginState = .cancelled
-        }
+        // OAuth app-to-app 로그인을 지원하기 위해 제거
+        // 앱 전환 = 취소가 아님. NidOAuth SDK가 타임아웃 및 실제 취소를 처리함
+        // if case .inProgress = loginState {
+        //     loginState = .cancelled
+        // }
     }
 
     @objc private func appWillEnterForeground() {
-        if case .cancelled = loginState {
-            sendError(message: "Login cancelled by user")
-            loginState = .idle
-        }
+        // OAuth 앱 복귀 시 자동 에러 처리 제거
+        // SDK의 completion handler가 실제 결과를 전달함
+        // if case .cancelled = loginState {
+        //     sendError(message: "Login cancelled by user")
+        //     loginState = .idle
+        // }
     }
 
     // MARK: - Flutter Plugin Registration
@@ -117,9 +121,9 @@ public class FlutterNaverLoginPlugin: NSObject, FlutterPlugin {
         
         // SDK 초기화
         NidOAuth.shared.initialize()
-        
-        // 기본 로그인 동작 설정 (웹뷰)
-        NidOAuth.shared.setLoginBehavior(.inAppBrowser)
+
+        // 기본 로그인 동작 설정 (앱-투-앱 로그인 우선, 네이버 앱 미설치시 웹뷰 자동 전환)
+        NidOAuth.shared.setLoginBehavior(.app)
         
         let channel = FlutterMethodChannel(
             name: "flutter_naver_login",
